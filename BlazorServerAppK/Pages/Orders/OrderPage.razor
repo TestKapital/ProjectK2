@@ -16,6 +16,19 @@
                 <EditForm Model="@Order" OnValidSubmit="HandleOrderUpsert">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
+
+                    <div class="form-group">
+                        <label for="body">Customer Category</label>
+                        <select value="@CustomerCategory.Id" class="form-select" @onchange="CustomerCategoryChange">
+                            @foreach (var customerCategory in GetCustomerCategory())
+                            {
+                                <option value="@customerCategory.Id">
+                                    @customerCategory.CategoryName
+                                </option>
+                            }
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label for="body">Customer</label>
                         <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
@@ -135,11 +148,13 @@
     public Customer SelectedCustomer = new();
     public Order Order { get; set; } = new Order();
     public OrderDetails OrderDetails { get; set; } = new OrderDetails();
+    public CustomerCategory CustomerCategory { get; set; } = new CustomerCategory();
     public Product Product { get; set; } = new Product();
     public ProductViewModel PVM { get; set; } = new ProductViewModel();
     public String Title { get; set; } = "Create";
     public List<ProductViewModel> OrderDetailsList { get; set; } = new List<ProductViewModel>();
     public Product SelectedProduct = new();
+    public CustomerCategory SelectedCustomerCategory = new();
     protected override async Task OnInitializedAsync()
     {
         if (Id != null)
@@ -229,6 +244,11 @@
 
     }
 
+    public List<CustomerCategory> GetCustomerCategory()
+    {
+        return UnitOfWork.CustomerCategory.GetAll().ToList();
+    }
+
     public double HandleTaxes(int orderPrice)
     {
         return orderPrice + ((double)orderPrice * 0.15);
@@ -238,6 +258,13 @@
     {
         Order.CustomerId = Int32.Parse(e.Value.ToString());
         SelectedCustomer = UnitOfWork.Customer.GetFirstOrDefault(x => x.Id == Order.CustomerId);
+        this.StateHasChanged();
+    }
+
+    protected async Task CustomerCategoryChange(ChangeEventArgs e)
+    {
+        CustomerCategory.Id = Int32.Parse(e.Value.ToString());
+        SelectedCustomerCategory = UnitOfWork.CustomerCategory.GetFirstOrDefault(x => x.Id == CustomerCategory.Id);
         this.StateHasChanged();
     }
 
