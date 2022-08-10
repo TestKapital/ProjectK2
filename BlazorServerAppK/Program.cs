@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectK.DataAccess.Data;
 using ProjectK.DataAccess.Repository;
 using ProjectK.DataAccess.Repository.IRepository;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
@@ -32,8 +36,12 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
+app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.UseAuthentication();;
 
 app.Run();
