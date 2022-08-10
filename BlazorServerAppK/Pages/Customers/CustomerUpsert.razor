@@ -6,6 +6,7 @@
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
+@attribute [Authorize(Roles=ProjectK.Utility.SD.Role_Admin)]
 
 <div class="row mt-2 mb-5">
     <h3 class="card-title text-info mb-3 ml-3">@Title Customer</h3>
@@ -33,7 +34,7 @@
                             @foreach (var gender in Enum.GetValues(typeof(Gender)))
                             {
                                 <option value="@gender">@gender</option>
-                            }                            
+                            }
                         </InputSelect>
                     </div>
                     <div class="form-group">
@@ -42,7 +43,7 @@
                             @foreach (var category in GetCategories())
                             {
                                 <option value="@category.Id">@category.CategoryName</option>
-                            }                            
+                            }
                         </InputSelect>
                     </div>
                     <div class="form-group">
@@ -68,8 +69,20 @@
     public int? Id { get; set; }
     public Customer Customer { get; set; } = new Customer();
     public String Title { get; set; } = "Create";
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+
+        var authenticationState = await AuthenticationState;
+        if (!authenticationState.User.IsInRole(ProjectK.Utility.SD.Role_Admin))
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            NavigationManager.NavigateTo($"/identity/account/login?returnUrl={uri.LocalPath}");
+        }
+
         if (Id != null)
         {
             Title = "Update";

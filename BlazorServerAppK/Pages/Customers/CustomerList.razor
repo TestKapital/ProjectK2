@@ -3,6 +3,7 @@
 @using ProjectK.DataAccess.Repository.IRepository
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles=ProjectK.Utility.SD.Role_Admin)]
 
 <div class="row mt-4">
     <div class="col-8">
@@ -31,21 +32,21 @@
             <tbody>
                 @if (Customers.Any())
                 {
-                    foreach(var customer in Customers)
+                    foreach (var customer in Customers)
                     {
-                       <tr>
-                           <td>@customer.FirstName</td>
-                           <td>@customer.LastName</td>
-                           <td>@customer.Birthday</td>
-                           <td>@customer.Gender</td>                                                   
-                           <td>@customer.CustomerCategory.CategoryName</td>                          
-                           <td>@customer.PhoneNumber</td>
-                           <td>@customer.Credit</td>
-                           <td>
-                               <NavLink href="@($"customer-list/edit/{customer.Id}")" class="btn btn-primary">Edit</NavLink>
-                               <button class="btn btn-danger" @onclick="()=> HandleDelete(customer)">Delete</button>
-                           </td>
-                       </tr> 
+                        <tr>
+                            <td>@customer.FirstName</td>
+                            <td>@customer.LastName</td>
+                            <td>@customer.Birthday</td>
+                            <td>@customer.Gender</td>
+                            <td>@customer.CustomerCategory.CategoryName</td>
+                            <td>@customer.PhoneNumber</td>
+                            <td>@customer.Credit</td>
+                            <td>
+                                <NavLink href="@($"customer-list/edit/{customer.Id}")" class="btn btn-primary">Edit</NavLink>
+                                <button class="btn btn-danger" @onclick="()=> HandleDelete(customer)">Delete</button>
+                            </td>
+                        </tr>
                     }
                 }
                 else
@@ -60,18 +61,29 @@
 </div>
 
 @code {
-    public IEnumerable<Customer> Customers { get; set; } = new List<Customer>();  
+    public IEnumerable<Customer> Customers { get; set; } = new List<Customer>();
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        Customers = UnitOfWork.Customer.GetAll(); 
-        Customers = UnitOfWork.Customer.ListWithInclude(null, x=>x.CustomerCategory).ToList();
+        var authenticationState = await AuthenticationState;
+        if (!authenticationState.User.IsInRole(ProjectK.Utility.SD.Role_Admin))
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            NavigationManager.NavigateTo($"/identity/account/login?returnUrl={uri.LocalPath}");
+        }
+
+        Customers = UnitOfWork.Customer.GetAll();
+        Customers = UnitOfWork.Customer.ListWithInclude(null, x => x.CustomerCategory).ToList();
     }
 
     public async Task HandleDelete(Customer Customer)
     {
         UnitOfWork.Customer.Remove(Customer);
         UnitOfWork.Save();
-        NavigationManager.NavigateTo("customer-list", true);      
+        NavigationManager.NavigateTo("customer-list", true);
     }
 }
 

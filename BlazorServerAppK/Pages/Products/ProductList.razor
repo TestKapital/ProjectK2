@@ -3,6 +3,7 @@
 @using ProjectK.DataAccess.Repository.IRepository
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles=ProjectK.Utility.SD.Role_Admin)]
 
 <div class="row mt-4">
     <div class="col-8">
@@ -55,8 +56,20 @@
 
 @code {
     public IEnumerable<Product> Products { get; set; } = new List<Product>();
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+
+        var authenticationState = await AuthenticationState;
+        if (!authenticationState.User.IsInRole(ProjectK.Utility.SD.Role_Admin))
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            NavigationManager.NavigateTo($"/identity/account/login?returnUrl={uri.LocalPath}");
+        }
+
         Products = UnitOfWork.Product.GetAll();
     }
 

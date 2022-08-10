@@ -3,6 +3,7 @@
 @using ProjectK.DataAccess.Repository.IRepository
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles=ProjectK.Utility.SD.Role_Admin)]
 
 <div class="row mt-4">
     <div class="col-8">
@@ -29,7 +30,7 @@
                     foreach (var order in Orders)
                     {
                         <tr>
-                            <td>@order.OrderDate</td> 
+                            <td>@order.OrderDate</td>
                             <td>@order.CustomerId</td>
                             <td>
                                 <NavLink href="@($"order-list/edit/{order.Id}")" class="btn btn-primary">Edit</NavLink>
@@ -51,8 +52,20 @@
 
 @code {
     public IEnumerable<Order> Orders { get; set; } = new List<Order>();
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+
+        var authenticationState = await AuthenticationState;
+        if (!authenticationState.User.IsInRole(ProjectK.Utility.SD.Role_Admin))
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            NavigationManager.NavigateTo($"/identity/account/login?returnUrl={uri.LocalPath}");
+        }
+
         Orders = UnitOfWork.Order.GetAll();
         Orders = UnitOfWork.Order.ListWithInclude(null, x => x.Customer).ToList();
     }
