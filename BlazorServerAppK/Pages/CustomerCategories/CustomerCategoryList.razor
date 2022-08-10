@@ -1,0 +1,64 @@
+﻿@page "/customerCategory-list"
+@using ProjectKapital.Models
+@using ProjectK.DataAccess.Repository.IRepository
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+
+<div class="row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Category List</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="customerCategory-list/create" class="btn btn-info form-control">Add New Category</NavLink>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (CustomerCategories.Any())
+                {
+                    foreach (var customerCategory in CustomerCategories)
+                    {
+                        <tr>
+                            <td>@customerCategory.CategoryName</td>
+                            <td>
+                                <NavLink href="@($"customerCategory-list/edit/{customerCategory.Id}")" class="btn btn-primary">Edit</NavLink>
+                                <button class="btn btn-danger" @onclick="()=> HandleDelete(customerCategory)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">No records found...</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public IEnumerable<CustomerCategory> CustomerCategories { get; set; } = new List<CustomerCategory>();
+    protected override async Task OnInitializedAsync()
+    {
+        CustomerCategories = UnitOfWork.CustomerCategory.GetAll();
+    }
+
+    public async Task HandleDelete(CustomerCategory CustomerCategory)
+    {
+        UnitOfWork.CustomerCategory.Remove(CustomerCategory);
+        UnitOfWork.Save();
+        NavigationManager.NavigateTo("customerCategory-list", true);
+    }
+}
+

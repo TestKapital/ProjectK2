@@ -1,0 +1,68 @@
+﻿@page "/order-list"
+@using ProjectK.Models
+@using ProjectK.DataAccess.Repository.IRepository
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+
+<div class="row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Order List</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="order-list/create" class="btn btn-info form-control">Add New Order</NavLink>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Order Date</th>
+                    <th>Customer</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Orders.Any())
+                {
+                    foreach (var order in Orders)
+                    {
+                        <tr>
+                            <td>@order.OrderDate</td> 
+                            <td>@order.CustomerId</td>
+                            <td>
+                                <NavLink href="@($"order-list/edit/{order.Id}")" class="btn btn-primary">Edit</NavLink>
+                                <button class="btn btn-danger" @onclick="()=> HandleDelete(order)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">No records found...</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public IEnumerable<Order> Orders { get; set; } = new List<Order>();
+    protected override async Task OnInitializedAsync()
+    {
+        Orders = UnitOfWork.Order.GetAll();
+        Orders = UnitOfWork.Order.ListWithInclude(null, x => x.Customer).ToList();
+    }
+
+    public async Task HandleDelete(Order Order)
+    {
+        UnitOfWork.Order.Remove(Order);
+        UnitOfWork.Save();
+        NavigationManager.NavigateTo("order-list", true);
+    }
+
+}
+

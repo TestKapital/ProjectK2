@@ -1,0 +1,290 @@
+﻿@page "/order-list/create"
+@page "/order-list/edit/{Id:int}"
+@using BlazorServerAppK.Data
+@using ProjectK.Models
+@using ProjectK.DataAccess.Repository.IRepository
+@using ProjectKapital.Models
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<div class="row mt-2 mb-5">
+    <h3 class="card-title text-info mb-3 ml-3">@Title Order</h3>
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="@Order" OnValidSubmit="HandleOrderUpsert">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="body">Customer</label>
+                        <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
+                            @foreach (var customer in GetCustomers())
+                            {
+                                <option value="@customer.Id">
+                                    @customer.FirstName @customer.LastName
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <InputText @bind-Value="SelectedCustomer.FirstName" class="form-control"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <InputText @bind-Value="SelectedCustomer.LastName" class="form-control"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <InputText @bind-Value="SelectedCustomer.PhoneNumber" class="form-control"></InputText>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Order Date</label>
+                        <InputText @bind-Value="Order.OrderDate" type="date" class="form-control"></InputText>
+                    </div>
+
+                    <hr style="width:100%;text-align:left;margin-left:0">
+                    <br />
+
+                    <div class="form-group" style="float:left">
+                        <label for="body">Product(s):</label>
+                        <select value="@OrderDetails.ProductId" @onchange="ProductSelect" class="form-select">
+                            @foreach (var product in GetProducts())
+                            {
+                                <option value="@product.Id">
+                                    Code: @product.Code, Name: @product.Name,
+                                    Price: @product.Price.ToString("c"), Availability: @product.Availability
+                                </option>
+                            }
+                        </select>
+                        <button class="btn btn-primary btn-sm" type="button" @onclick="@Save">Add Product</button>
+                    </div>
+                    <div class="form-group" style="float:left">
+                        <label for="body">Quantity</label>
+                        <InputNumber @bind-Value="PVM.Quantity" class="form-control"></InputNumber>
+                    </div>
+
+                    @if (OrderDetailsList == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product Code</th>
+                                    <th>Product Name</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in OrderDetailsList)
+                                {
+                                    <tr>
+                                        <td>@product.Code</td>
+                                        <td>@product.Name</td>
+                                        <td>@product.Price.ToString("c")</td>
+                                        <td>@product.Quantity</td>
+                                        <td>@product.TotalPrice.ToString("c")</td>
+                                        <td>
+                                            <button class="btn btn-danger" type="button"
+                                            @onclick="()=> HandleRemove(product)">
+                                                Remove
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                    <div class="form-group">
+                        <label>Quantity Total</label>
+                        <InputNumber @bind-Value="OrderDetails.Quantity" class="form-control"></InputNumber>
+                        <label>Order Price</label>
+                        <InputNumber @bind-Value="OrderDetails.Price" class="form-control"></InputNumber>
+
+                        <hr style="width:100%;text-align:left;margin-left:0">
+                        <br />
+
+                        <label>Total Price (Taxes Included at 15%):</label>
+                        <br />
+                        <span>@HandleTaxes(OrderDetails.Price).ToString("c")</span>
+                        <br />
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary">@Title Order</button>
+                        <NavLink href="order-list" class="btn btn-secondary">Back to Index</NavLink>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public int? Id { get; set; }
+    public Customer SelectedCustomer = new();
+    public Order Order { get; set; } = new Order();
+    public OrderDetails OrderDetails { get; set; } = new OrderDetails();
+    public Product Product { get; set; } = new Product();
+    public ProductViewModel PVM { get; set; } = new ProductViewModel();
+    public String Title { get; set; } = "Create";
+    public List<ProductViewModel> OrderDetailsList { get; set; } = new List<ProductViewModel>();
+    public Product SelectedProduct = new();
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            Title = "Update";
+
+            Order = UnitOfWork.Order.GetFirstOrDefault(m => m.Id == Id);
+
+            OrderDetailsList = UnitOfWork.OrderDetails.ListWithInclude(m => m.OrderId == Id, x => x.Product)
+                                .Select(p => new ProductViewModel
+                                    {
+                                        Id = p.Id,
+                                        Code = p.Product.Code,
+                                        Name = p.Product.Name,
+                                        Price = p.Price,
+                                        Quantity = p.Quantity,
+                                        TotalPrice = p.Quantity * p.Price
+                                    }).ToList();
+            this.StateHasChanged();
+        }
+        else
+        {
+            Order = new Order();
+        }
+
+    }
+
+    public async Task HandleOrderUpsert()
+    {
+        try
+        {
+            if (Order.Id != 0 && Title == "Update")
+            {
+                UnitOfWork.Order.Update(Order);
+                UnitOfWork.Save();
+                foreach (var product in OrderDetailsList)
+                {
+                    UnitOfWork.OrderDetails.Update(new OrderDetails
+                        {
+                            Price = product.Price,
+                            Quantity = product.Quantity,
+                            ProductId = product.Id,
+                            OrderId = Order.Id
+                        });
+                }
+                UnitOfWork.Save();
+                NavigationManager.NavigateTo("order-list");
+                JsRuntime.InvokeVoidAsync("ShowToastr", "success", "Update Complete!");
+            }
+            else
+            {
+                UnitOfWork.Order.Add(Order);
+                UnitOfWork.Save();
+                foreach (var product in OrderDetailsList)
+                {
+                    UnitOfWork.OrderDetails.Add(new OrderDetails
+                        {
+                            Price = product.Price,
+                            Quantity = product.Quantity,
+                            ProductId = product.Id,
+                            OrderId = Order.Id
+                        });
+                }
+                UnitOfWork.Save();
+                NavigationManager.NavigateTo("order-list");
+                JsRuntime.InvokeVoidAsync("ShowToastr", "success", "Creation Complete!");
+            }
+        }
+        catch (Exception e)
+        {
+
+        }
+
+        NavigationManager.NavigateTo("order-list");
+
+    }
+
+    public List<Product> GetProducts()
+    {
+        return UnitOfWork.Product.GetAll().ToList();
+
+    }
+
+    public List<Customer> GetCustomers()
+    {
+        return UnitOfWork.Customer.GetAll().ToList();
+
+    }
+
+    public double HandleTaxes(int orderPrice)
+    {
+        return orderPrice + ((double)orderPrice * 0.15);
+    }
+
+    protected async Task CustomerChange(ChangeEventArgs e)
+    {
+        Order.CustomerId = Int32.Parse(e.Value.ToString());
+        SelectedCustomer = UnitOfWork.Customer.GetFirstOrDefault(x => x.Id == Order.CustomerId);
+        this.StateHasChanged();
+    }
+
+    protected async Task ProductSelect(ChangeEventArgs e)
+    {
+        OrderDetails.ProductId = Int32.Parse(e.Value.ToString());
+        SelectedProduct = UnitOfWork.Product.GetFirstOrDefault(x => x.Id == OrderDetails.ProductId);
+        this.StateHasChanged();
+    }
+
+    protected async Task Save()
+    {
+        if (SelectedProduct.Availability < PVM.Quantity)
+        {
+            JsRuntime.InvokeVoidAsync("ShowToastr", "error", "Not Enough Stock.");
+        }
+        else if (PVM.Quantity <= 0)
+        {
+            JsRuntime.InvokeVoidAsync("ShowToastr", "error", "Invalid Amount.");
+        }
+        else
+        {
+            SelectedProduct.Availability -= PVM.Quantity;
+            OrderDetails.Quantity += PVM.Quantity;
+            OrderDetails.Price += (SelectedProduct.Price * PVM.Quantity);
+            OrderDetailsList.Add(new ProductViewModel
+                {
+                    Id = OrderDetails.ProductId,
+                    Code = SelectedProduct.Code,
+                    Name = SelectedProduct.Name,
+                    Price = SelectedProduct.Price,
+                    Availability = SelectedProduct.Availability,
+                    Quantity = PVM.Quantity,
+                    TotalPrice = (PVM.Quantity * SelectedProduct.Price)
+                });
+
+        }
+
+    }
+
+    public async Task HandleRemove(ProductViewModel Product)
+    {
+        OrderDetailsList.Remove(Product);
+        OrderDetails.Quantity -= Product.Quantity;
+        OrderDetails.Price -= (Product.Price * Product.Quantity);
+
+    }
+
+}
+

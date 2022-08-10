@@ -1,0 +1,77 @@
+﻿@page "/customer-list"
+@using ProjectKapital.Models
+@using ProjectK.DataAccess.Repository.IRepository
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+
+<div class="row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Customer List</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="customer-list/create" class="btn btn-info form-control">Add New Customer</NavLink>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Birthday</th>
+                    <th>Gender</th>
+                    <th>Category</th>
+                    <th>Phone Number</th>
+                    <th>Credit</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Customers.Any())
+                {
+                    foreach(var customer in Customers)
+                    {
+                       <tr>
+                           <td>@customer.FirstName</td>
+                           <td>@customer.LastName</td>
+                           <td>@customer.Birthday</td>
+                           <td>@customer.Gender</td>                                                   
+                           <td>@customer.CustomerCategory.CategoryName</td>                          
+                           <td>@customer.PhoneNumber</td>
+                           <td>@customer.Credit</td>
+                           <td>
+                               <NavLink href="@($"customer-list/edit/{customer.Id}")" class="btn btn-primary">Edit</NavLink>
+                               <button class="btn btn-danger" @onclick="()=> HandleDelete(customer)">Delete</button>
+                           </td>
+                       </tr> 
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">No records found...</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public IEnumerable<Customer> Customers { get; set; } = new List<Customer>();  
+    protected override async Task OnInitializedAsync()
+    {
+        Customers = UnitOfWork.Customer.GetAll(); 
+        Customers = UnitOfWork.Customer.ListWithInclude(null, x=>x.CustomerCategory).ToList();
+    }
+
+    public async Task HandleDelete(Customer Customer)
+    {
+        UnitOfWork.Customer.Remove(Customer);
+        UnitOfWork.Save();
+        NavigationManager.NavigateTo("customer-list", true);      
+    }
+}
+

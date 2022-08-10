@@ -1,0 +1,77 @@
+﻿@page "/customerCategory-list/create"
+@page "/customerCategory-list/edit/{Id:int}"
+@using ProjectKapital.Models
+@using ProjectK.DataAccess.Repository.IRepository
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<div class="row mt-2 mb-5">
+    <h3 class="card-title text-info mb-3 ml-3">@Title Customer Category</h3>
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="@CustomerCategory" OnValidSubmit="HandleCategoryUpsert">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label>Category Name</label>
+                        <InputText @bind-Value="CustomerCategory.CategoryName" class="form-control"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary">@Title Customer Category</button>
+                        <NavLink href="customerCategory-list" class="btn btn-secondary">Back to Index</NavLink>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    public CustomerCategory CustomerCategory { get; set; } = new CustomerCategory();
+    public String Title { get; set; } = "Create";
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            Title = "Update";
+            CustomerCategory = UnitOfWork.CustomerCategory.GetFirstOrDefault(m => m.Id == Id);
+        }
+        else
+        {
+            CustomerCategory = new CustomerCategory();
+        }
+    }
+
+    public async Task HandleCategoryUpsert()
+    {
+        try
+        {
+            if (CustomerCategory.Id != 0 && Title == "Update")
+            {
+                UnitOfWork.CustomerCategory.Update(CustomerCategory);
+                UnitOfWork.Save();
+                NavigationManager.NavigateTo("customerCategory-list");
+                JsRuntime.InvokeVoidAsync("ShowToastr", "success", "Update Complete!");
+            }
+            else
+            {
+                UnitOfWork.CustomerCategory.Add(CustomerCategory);
+                UnitOfWork.Save();
+                NavigationManager.NavigateTo("customerCategory-list");
+                JsRuntime.InvokeVoidAsync("ShowToastr", "success", "Creation Complete!");
+            }
+        }
+        catch (Exception e)
+        {
+
+        }
+
+        NavigationManager.NavigateTo("customerCategory-list");
+
+    }
+
+}

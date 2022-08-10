@@ -1,0 +1,70 @@
+﻿@page "/product-list"
+@using ProjectK.Models
+@using ProjectK.DataAccess.Repository.IRepository
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+
+<div class="row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Product List</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="product-list/create" class="btn btn-info form-control">Add New Product</NavLink>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Availability</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Products.Any())
+                {
+                    foreach (var product in Products)
+                    {
+                        <tr>
+                            <td>@product.Code</td>
+                            <td>@product.Name</td>
+                            <td>@product.Price.ToString("c")</td>
+                            <td>@product.Availability</td>
+                            <td>
+                                <NavLink href="@($"product-list/edit/{product.Id}")" class="btn btn-primary">Edit</NavLink>
+                                <button class="btn btn-danger" @onclick="()=> HandleDelete(product)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">No records found...</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public IEnumerable<Product> Products { get; set; } = new List<Product>();
+    protected override async Task OnInitializedAsync()
+    {
+        Products = UnitOfWork.Product.GetAll();
+    }
+
+    public async Task HandleDelete(Product Product)
+    {
+        UnitOfWork.Product.Remove(Product);
+        UnitOfWork.Save();
+        NavigationManager.NavigateTo("product-list", true);
+    }
+
+}
