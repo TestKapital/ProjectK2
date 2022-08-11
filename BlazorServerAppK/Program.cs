@@ -10,6 +10,7 @@ using BlazorServerAppK.Service;
 using BlazorServerAppK.Service.IService;
 using BlazorServerAppK.Helper;
 using System.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
