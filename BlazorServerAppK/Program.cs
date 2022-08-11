@@ -6,6 +6,8 @@ using ProjectK.DataAccess.Data;
 using ProjectK.DataAccess.Repository;
 using ProjectK.DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Identity;
+using BlazorServerAppK.Service;
+using BlazorServerAppK.Service.IService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders()
     .AddDefaultUI();
+builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddServerSideBlazor();
@@ -25,12 +28,13 @@ builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline. 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+
 }
 
 app.UseHttpsRedirection();
@@ -40,6 +44,13 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+    // use dbInitializer
+    dbInitializer.Initialize();
+}
 
 app.MapRazorPages();
 app.MapBlazorHub();
