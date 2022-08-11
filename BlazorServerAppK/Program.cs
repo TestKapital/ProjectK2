@@ -8,6 +8,8 @@ using ProjectK.DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Identity;
 using BlazorServerAppK.Service;
 using BlazorServerAppK.Service.IService;
+using BlazorServerAppK.Helper;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
