@@ -10,38 +10,48 @@
 @attribute [Authorize(Roles = ProjectK.Utility.SD.Role_Admin)]
 
 <div class="row mt-2 mb-5">
-    <h3 class="card-title text-info mb-3 ml-3">@Title Order</h3>
+    <h2 class="card-title text-info mb-3 ml-3">@Title Order</h2>
     <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <EditForm Model="@Order" OnValidSubmit="HandleOrderUpsert">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
+        <EditForm Model="@Order" OnValidSubmit="HandleOrderUpsert">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-                    <div class="form-group">
-                        <label for="body">Customer Category</label>
-                        <select value="@CustomerCategory.Id" class="form-select" @onchange="CustomerCategoryChange">
-                            @foreach (var customerCategory in GetCustomerCategory())
-                            {
-                                <option value="@customerCategory.Id">
-                                    @customerCategory.CategoryName
-                                </option>
-                            }
-                        </select>
-                    </div>
+            <div class="container-fluid">
+                <label for="body">Customer Category</label>
+                <select value="@CustomerCategory.Id" class="form-select" @onchange="CustomerCategoryChange">
+                    @foreach (var customerCategory in GetCustomerCategory())
+                    {
+                        <option value="@customerCategory.Id">
+                            @customerCategory.CategoryName
+                        </option>
+                    }
+                </select>
+            </div>
+            <br />
 
-                    <div class="form-group">
-                        <label for="body">Customer</label>
-                        <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
-                            @foreach (var customer in GetCustomers())
-                            {
-                                <option value="@customer.Id">
-                                    @customer.FirstName @customer.LastName
-                                </option>
-                            }
-                        </select>
-                    </div>
+            <div class="row">
+                <div class="col">
+                    <label for="body">-- Customer --</label>
+                    <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
+                        @foreach (var customer in GetCustomers())
+                        {
+                            <option value="@customer.Id">
+                                @customer.FirstName @customer.LastName
+                            </option>
+                        }
+                    </select>
+                </div>
 
+                <div class="col">
+                    <label>Order Date</label>
+                    <InputText @bind-Value="Order.OrderDate" type="date" class="form-control"></InputText>
+                </div>
+            </div>
+            <br />
+
+            <div class="card">
+                <div class="card-header">Customer Information</div>
+                <div class="card-body">
                     <div class="form-group">
                         <label>First Name</label>
                         <InputText @bind-Value="SelectedCustomer.FirstName" class="form-control"></InputText>
@@ -54,15 +64,13 @@
                         <label>Phone Number</label>
                         <InputText @bind-Value="SelectedCustomer.PhoneNumber" class="form-control"></InputText>
                     </div>
+                </div>
+            </div>
+            <br />
 
-                    <div class="form-group">
-                        <label>Order Date</label>
-                        <InputText @bind-Value="Order.OrderDate" type="date" class="form-control"></InputText>
-                    </div>
-
-                    <hr style="width:100%;text-align:left;margin-left:0">
-                    <br />
-
+            <div class="card">
+                <div class="card-header">Order List</div>
+                <div class="card-body">
                     <div class="form-group" style="float:left">
                         <label for="body">Product(s):</label>
                         <select value="@OrderDetails.ProductId" @onchange="ProductSelect" class="form-select">
@@ -74,7 +82,10 @@
                                 </option>
                             }
                         </select>
-                        <button class="btn btn-primary btn-sm" type="button" @onclick="@Save">Add Product</button>
+                        <button class="btn btn-outline-primary" style="float:right" type="button"
+                                @onclick="@Save">
+                            Add Product to Order
+                        </button>
                     </div>
 
                     <div class="form-group" style="float:left">
@@ -88,7 +99,7 @@
                     }
                     else
                     {
-                        <table class="table">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
@@ -118,15 +129,21 @@
                             </tbody>
                         </table>
                     }
+                </div>
+            </div>
+            <br />
 
+            <div class="card">
+                <div class="card-header">Order Summary</div>
+                <div class="card-body">
                     <div class="form-group">
                         <label>Quantity Total</label>
                         <InputNumber @bind-Value="OrderDetails.Quantity" class="form-control"></InputNumber>
                         <label>Order Price</label>
                         <InputNumber @bind-Value="OrderDetails.Price" class="form-control"></InputNumber>
 
-                        <hr style="width:100%;text-align:left;margin-left:0">
                         <br />
+                        <hr style="width:100%;height:2px;text-align:left;margin-left:0;background-color:black;">
 
                         <label>Total Price (Taxes Included at 15%):</label>
                         <br />
@@ -137,9 +154,9 @@
                         <button class="btn btn-primary">@Title Order</button>
                         <NavLink href="order-list" class="btn btn-secondary">Back to Index</NavLink>
                     </div>
-                </EditForm>
+                </div>
             </div>
-        </div>
+        </EditForm>
     </div>
 </div>
 
