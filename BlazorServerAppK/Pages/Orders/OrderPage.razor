@@ -32,13 +32,13 @@
             <div class="row">
                 <div class="col">
                     <label for="body">-- Customer --</label>
-                    <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
-                        @foreach (var customer in GetCustomers())
-                        {
+                    <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">     
+                        @foreach (var customer in Customers)
+                        {                                     
                             <option value="@customer.Id">
                                 @customer.FirstName @customer.LastName
-                            </option>
-                        }
+                            </option>                             
+                        }                         
                     </select>
                 </div>
 
@@ -173,6 +173,7 @@
     public String Title { get; set; } = "Create";
     public List<ProductViewModel> OrderDetailsList { get; set; } = new List<ProductViewModel>();
     public Product SelectedProduct = new();
+    public List<Customer> Customers = new List<Customer>();
     public CustomerCategory SelectedCustomerCategory = new();
 
     [CascadingParameter]
@@ -269,12 +270,6 @@
 
     }
 
-    public List<Customer> GetCustomers()
-    {
-        return UnitOfWork.Customer.GetAll().ToList();
-
-    }
-
     public List<CustomerCategory> GetCustomerCategory()
     {
         return UnitOfWork.CustomerCategory.GetAll().ToList();
@@ -285,17 +280,17 @@
         return orderPrice + ((double)orderPrice * 0.15);
     }
 
+    protected async Task CustomerCategoryChange(ChangeEventArgs e)
+    {
+        CustomerCategory.Id = Int32.Parse(e.Value.ToString());
+        Customers = UnitOfWork.Customer.ListWithInclude(x => x.CustomerCategoryId == CustomerCategory.Id).ToList();
+        this.StateHasChanged();
+    }
+
     protected async Task CustomerChange(ChangeEventArgs e)
     {
         Order.CustomerId = Int32.Parse(e.Value.ToString());
         SelectedCustomer = UnitOfWork.Customer.GetFirstOrDefault(x => x.Id == Order.CustomerId);
-        this.StateHasChanged();
-    }
-
-    protected async Task CustomerCategoryChange(ChangeEventArgs e)
-    {
-        CustomerCategory.Id = Int32.Parse(e.Value.ToString());
-        SelectedCustomerCategory = UnitOfWork.CustomerCategory.GetFirstOrDefault(x => x.Id == CustomerCategory.Id);
         this.StateHasChanged();
     }
 
