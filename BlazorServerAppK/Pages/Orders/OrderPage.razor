@@ -16,23 +16,22 @@
             <DataAnnotationsValidator />
             <ValidationSummary />
 
-            <div class="container-fluid">
-                <label for="body">Customer Category</label>
-                <select value="@CustomerCategory.Id" class="form-select" @onchange="CustomerCategoryChange">
-                    @foreach (var customerCategory in GetCustomerCategory())
-                    {
-                        <option value="@customerCategory.Id">
-                            @customerCategory.CategoryName
-                        </option>
-                    }
-                </select>
-            </div>
-            <br />
-
             <div class="row">
                 <div class="col">
+                    <label for="body">Customer Category</label>
+                    <select value="@CustomerCategory.Id" class="form-select" @onchange="CustomerCategoryChange">
+                        @foreach (var customerCategory in GetCustomerCategory())
+                        {
+                            <option value="@customerCategory.Id">
+                                @customerCategory.CategoryName
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col">
                     <label for="body">Customer</label>
-                    <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">                        
+                    <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
                         @foreach (var customer in Customers)
                         {
                             <option disabled selected>--Select Customer--</option>
