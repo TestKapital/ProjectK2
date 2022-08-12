@@ -152,7 +152,7 @@
                         <br />
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary">@Title Order</button>
+                        <button class="btn btn-primary" @onclick="SendMail">@Title Order</button>
                         <NavLink href="order-list" class="btn btn-secondary">Back to Index</NavLink>
                     </div>
                 </div>
@@ -339,6 +339,33 @@
         OrderDetails.Price -= (Product.Price * Product.Quantity);
 
     }
+
+    private void SendMail()
+    {
+        try
+        {
+            using(MailMessage mail = new MailMessage())
+            {
+                mail.From = new MailAddress("*****");
+                mail.To.Add("*****");
+                mail.Subject = "Order Test - Blazor";
+                mail.Body = "<h1>Order Test - Blazor<h1>";
+                mail.IsBodyHtml = true;
+
+                using (SmtpClient smtp = new SmtpClient("mail.outlook.com", 587))
+                {
+                    smtp.Credentials = new System.Net.NetworkCredential("*****", "*****");
+                    smtp.EnableSsl = true;
+                    smtp.Send(mail);
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            
+        }
+    }
+
 
 }
 
