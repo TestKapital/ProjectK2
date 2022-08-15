@@ -340,29 +340,29 @@
 
     }
 
+    private string Message { get; set; } = "";
     private void SendMail()
     {
         try
         {
             using(MailMessage mail = new MailMessage())
             {
-                mail.From = new MailAddress("*****");
-                mail.To.Add("*****");
+                mail.From = new MailAddress("***");
+                mail.To.Add("***");
                 mail.Subject = "Order Test - Blazor";
                 mail.Body = "<h1>Order Test - Blazor<h1>";
                 mail.IsBodyHtml = true;
+                using var smtp = new SmtpClient("mail.outlook.com", 587);               
+                smtp.Credentials = new System.Net.NetworkCredential("***", "***");
+                smtp.EnableSsl = true;
+                smtp.Send(mail);
+                Message = "Email sent!";
 
-                using (SmtpClient smtp = new SmtpClient("mail.outlook.com", 587))
-                {
-                    smtp.Credentials = new System.Net.NetworkCredential("*****", "*****");
-                    smtp.EnableSsl = true;
-                    smtp.Send(mail);
-                }
             }
         }
         catch(Exception e)
         {
-            
+            Message = e.Message;
         }
     }
 
