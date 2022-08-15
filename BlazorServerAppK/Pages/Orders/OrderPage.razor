@@ -1,11 +1,12 @@
 ﻿@page "/order-list/create"
 @page "/order-list/edit/{Id:int}"
+@using BlazorServerAppK.Controllers
 @using BlazorServerAppK.Data
 @using ProjectK.Models
 @using ProjectK.DataAccess.Repository.IRepository
 @using ProjectKapital.Models
-@using System.Net.Mail
 @inject IUnitOfWork UnitOfWork
+@inject EmailController emailController
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
 @attribute [Authorize(Roles = ProjectK.Utility.SD.Role_Admin)]
@@ -152,7 +153,7 @@
                         <br />
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary" @onclick="SendMail">@Title Order</button>
+                        <button class="btn btn-primary" @onclick="SendEmail">@Title Order</button>
                         <NavLink href="order-list" class="btn btn-secondary">Back to Index</NavLink>
                     </div>
                 </div>
@@ -340,32 +341,9 @@
 
     }
 
-    private string Message { get; set; } = "";
-    private void SendMail()
+    public async Task SendEmail()
     {
-        try
-        {
-            using(MailMessage mail = new MailMessage())
-            {
-                mail.From = new MailAddress("***");
-                mail.To.Add("***");
-                mail.Subject = "Order Test - Blazor";
-                mail.Body = "<h1>Order Test - Blazor<h1>";
-                mail.IsBodyHtml = true;
-                using var smtp = new SmtpClient("mail.outlook.com", 587);               
-                smtp.Credentials = new System.Net.NetworkCredential("***", "***");
-                smtp.EnableSsl = true;
-                smtp.Send(mail);
-                Message = "Email sent!";
-
-            }
-        }
-        catch(Exception e)
-        {
-            Message = e.Message;
-        }
+        emailController.SendEmail("Order Test-Email -- Blazor");
     }
-
-
 }
 

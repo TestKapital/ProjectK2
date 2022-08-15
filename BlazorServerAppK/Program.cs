@@ -10,6 +10,7 @@ using BlazorServerAppK.Service;
 using BlazorServerAppK.Service.IService;
 using System.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using BlazorServerAppK.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,8 @@ builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddScoped<EmailController>();
 
 var app = builder.Build();
 
