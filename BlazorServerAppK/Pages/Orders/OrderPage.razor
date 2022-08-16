@@ -21,7 +21,7 @@
             <div class="row">
                 <div class="col">
                     <label for="body">Customer Category</label>
-                    <select value="@CustomerCategory.Id" class="form-select" @onchange="CustomerCategoryChange">
+                    <select value="@SelectedCustomerCategoryId" class="form-select" @onchange="CustomerCategoryChange">
                         @foreach (var customerCategory in GetCustomerCategory())
                         {
                             <option value="@customerCategory.Id">
@@ -33,7 +33,7 @@
 
                 <div class="col">
                     <label for="body">Customer</label>
-                    <select value="@Order.CustomerId" class="form-select" @onchange="CustomerChange">
+                    <select value="@SelectedCustomerId" class="form-select" @onchange="CustomerChange">
                         @foreach (var customer in Customers)
                         {
                             <option disabled selected>--Select Customer--</option>
@@ -177,6 +177,8 @@
     public Product SelectedProduct = new();
     public List<Customer> Customers = new List<Customer>();
     public CustomerCategory SelectedCustomerCategory = new();
+    public int SelectedCustomerCategoryId=0;
+    public int SelectedCustomerId = 0;
 
     [CascadingParameter]
     public Task<AuthenticationState> AuthenticationState { get; set; }
@@ -196,6 +198,10 @@
             Title = "Update";
 
             Order = UnitOfWork.Order.GetFirstOrDefault(m => m.Id == Id);
+
+            SelectedCustomerId = Order.CustomerId;
+            SelectedCustomerCategoryId = UnitOfWork.Customer.GetFirstOrDefault(x => x.Id == SelectedCustomerId).CustomerCategoryId;
+            await CustomerCategoryChange(new ChangeEventArgs { Value = SelectedCustomerCategoryId });
 
             OrderDetailsList = UnitOfWork.OrderDetails.ListWithInclude(m => m.OrderId == Id, x => x.Product)
                                 .Select(p => new ProductViewModel
