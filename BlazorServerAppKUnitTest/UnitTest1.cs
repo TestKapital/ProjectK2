@@ -1,18 +1,22 @@
 using BlazorServerAppK.Controllers;
+using BlazorServerAppK.Pages;
 using BlazorServerAppK.Pages.Orders;
 using Bunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using ProjectK.DataAccess.Data;
+using ProjectK.DataAccess.Repository;
 using ProjectK.DataAccess.Repository.IRepository;
 
 namespace BlazorServerAppKUnitTest
 {
     public class Tests
     {
-        private Bunit.TestContext testContext;
-        private Mock<IUnitOfWork> unitOfWork;
-        private Mock<EmailController> emailController;
+        public Bunit.TestContext testContext;
+        public Mock<IUnitOfWork> unitOfWork = new Mock<IUnitOfWork>();
+        public Mock<EmailController> emailController = new Mock<EmailController>();
 
         [SetUp]
         public void Setup()
@@ -29,13 +33,12 @@ namespace BlazorServerAppKUnitTest
         [Test]
         public void OrderPage_CheckConditions_HtmlAndButtons()
         {
-            testContext.Services.AddScoped(x => unitOfWork.Object);
-            testContext.Services.AddScoped(x => emailController.Object);
 
-            var component = testContext.RenderComponent<OrderPage>();
-            Assert.IsTrue(component.Markup.Contains("<label>Order Date</label>"));
-            var buttons = component.FindAll("button");
-            Assert.Equals(4, buttons.Count);
+            var component1 = testContext.RenderComponent<Index>();
+            Assert.IsTrue(component1.Markup.Contains("<h1>Hello World!</h1>"));
+
+            var buttons = component1.FindAll("button");
+            Assert.AreEqual(0, buttons.Count);
 
         }
     }

@@ -12,7 +12,7 @@ using ProjectK.DataAccess.Data;
 namespace ProjectK.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220811160604_jai")]
+    [Migration("20220816183047_jai")]
     partial class jai
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
